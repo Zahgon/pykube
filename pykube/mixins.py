@@ -7,31 +7,22 @@ class ReplicatedMixin(object):
 
     @property
     def replicas(self):
-        return self.obj["spec"]["replicas"]
+        pass
 
     @replicas.setter
     def replicas(self, value):
-        self.obj["spec"]["replicas"] = value
+        pass
 
 
 class ScalableMixin(object):
 
     @property
     def scalable(self):
-        return getattr(self, self.scalable_attr)
+        pass
 
     @scalable.setter
     def scalable(self, value):
-        setattr(self, self.scalable_attr, value)
+        pass
 
     def scale(self, replicas=None):
-        count = self.scalable if replicas is None else replicas
-        self.exists(ensure=True)
-        if self.scalable != count:
-            self.scalable = count
-            self.update()
-            while True:
-                self.reload()
-                if self.scalable == count:
-                    break
-                time.sleep(1)
+        pass

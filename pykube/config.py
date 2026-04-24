@@ -19,45 +19,7 @@ class KubeConfig(object):
 
     @classmethod
     def from_service_account(cls, path="/var/run/secrets/kubernetes.io/serviceaccount", **kwargs):
-        with open(os.path.join(path, "token")) as fp:
-            token = fp.read()
-        host = os.environ.get("PYKUBE_KUBERNETES_SERVICE_HOST")
-        if host is None:
-            host = os.environ["KUBERNETES_SERVICE_HOST"]
-        port = os.environ.get("PYKUBE_KUBERNETES_SERVICE_PORT")
-        if port is None:
-            port = os.environ["KUBERNETES_SERVICE_PORT"]
-        doc = {
-            "clusters": [
-                {
-                    "name": "self",
-                    "cluster": {
-                        "server": "https://{}:{}".format(host, port),
-                        "certificate-authority": os.path.join(path, "ca.crt"),
-                    },
-                },
-            ],
-            "users": [
-                {
-                    "name": "self",
-                    "user": {
-                        "token": token,
-                    },
-                },
-            ],
-            "contexts": [
-                {
-                    "name": "self",
-                    "context": {
-                        "cluster": "self",
-                        "user": "self",
-                    },
-                }
-            ],
-            "current-context": "self",
-        }
-        self = cls(doc, **kwargs)
-        return self
+        pass
 
     @classmethod
     def from_file(cls, filename, **kwargs):
@@ -67,14 +29,7 @@ class KubeConfig(object):
         :Parameters:
            - `filename`: The full path to the configuration file
         """
-        filename = os.path.expanduser(filename)
-        if not os.path.isfile(filename):
-            raise exceptions.PyKubeError("Configuration file {} not found".format(filename))
-        with open(filename) as f:
-            doc = yaml.safe_load(f.read())
-        self = cls(doc, **kwargs)
-        self.filename = filename
-        return self
+        pass
 
     @classmethod
     def from_url(cls, url, **kwargs):
@@ -82,38 +37,13 @@ class KubeConfig(object):
         Creates an instance of the KubeConfig class from a single URL (useful
         for interacting with kubectl proxy).
         """
-        doc = {
-            "clusters": [
-                {
-                    "name": "self",
-                    "cluster": {
-                        "server": url,
-                    },
-                },
-            ],
-            "contexts": [
-                {
-                    "name": "self",
-                    "context": {
-                        "cluster": "self",
-                    },
-                }
-            ],
-            "current-context": "self",
-        }
-        self = cls(doc, **kwargs)
-        return self
+        pass
 
     def __init__(self, doc, current_context=None):
         """
         Creates an instance of the KubeConfig class.
         """
-        self.doc = doc
-        self._current_context = None
-        if current_context is not None:
-            self.set_current_context(current_context)
-        elif "current-context" in doc and doc["current-context"]:
-            self.set_current_context(doc["current-context"])
+        raise NotImplementedError
 
     def set_current_context(self, value):
         """
@@ -122,55 +52,32 @@ class KubeConfig(object):
         :Parameters:
            - `value`: The value for the current context
         """
-        self._current_context = value
+        pass
 
     @property
     def current_context(self):
-        if self._current_context is None:
-            raise exceptions.PyKubeError("current context not set; call set_current_context")
-        return self._current_context
+        pass
 
     @property
     def clusters(self):
         """
         Returns known clusters by exposing as a read-only property.
         """
-        if not hasattr(self, "_clusters"):
-            cs = {}
-            for cr in self.doc["clusters"]:
-                cs[cr["name"]] = c = copy.deepcopy(cr["cluster"])
-                if "server" not in c:
-                    c["server"] = "http://localhost"
-                BytesOrFile.maybe_set(c, "certificate-authority")
-            self._clusters = cs
-        return self._clusters
+        pass
 
     @property
     def users(self):
         """
         Returns known users by exposing as a read-only property.
         """
-        if not hasattr(self, "_users"):
-            us = {}
-            if "users" in self.doc:
-                for ur in self.doc["users"]:
-                    us[ur["name"]] = u = copy.deepcopy(ur["user"])
-                    BytesOrFile.maybe_set(u, "client-certificate")
-                    BytesOrFile.maybe_set(u, "client-key")
-            self._users = us
-        return self._users
+        pass
 
     @property
     def contexts(self):
         """
         Returns known contexts by exposing as a read-only property.
         """
-        if not hasattr(self, "_contexts"):
-            cs = {}
-            for cr in self.doc["contexts"]:
-                cs[cr["name"]] = copy.deepcopy(cr["context"])
-            self._contexts = cs
-        return self._contexts
+        pass
 
     @property
     def cluster(self):
@@ -178,37 +85,27 @@ class KubeConfig(object):
         Returns the current selected cluster by exposing as a
         read-only property.
         """
-        return self.clusters[self.contexts[self.current_context]["cluster"]]
+        pass
 
     @property
     def user(self):
         """
         Returns the current user set by current context
         """
-        return self.users.get(self.contexts[self.current_context].get("user", ""), {})
+        pass
 
     @property
     def namespace(self):
         """
         Returns the current context namespace by exposing as a read-only property.
         """
-        return self.contexts[self.current_context].get("namespace", "default")
+        pass
 
     def persist_doc(self):
-        if not hasattr(self, "filename") or not self.filename:
-            # Config was provided as string, not way to persit it
-            return
-        with open(self.filename, "w") as f:
-            yaml.safe_dump(self.doc, f, encoding='utf-8',
-                           allow_unicode=True, default_flow_style=False)
+        pass
 
     def reload(self):
-        if hasattr(self, "_users"):
-            delattr(self, "_users")
-        if hasattr(self, "_contexts"):
-            delattr(self, "_contexts")
-        if hasattr(self, "_clusters"):
-            delattr(self, "_clusters")
+        pass
 
 
 class BytesOrFile(object):
@@ -218,13 +115,7 @@ class BytesOrFile(object):
 
     @classmethod
     def maybe_set(cls, d, key):
-        file_key = key
-        data_key = "{}-data".format(key)
-        if data_key in d:
-            d[file_key] = cls(data=d[data_key])
-            del d[data_key]
-        elif file_key in d:
-            d[file_key] = cls(filename=d[file_key])
+        pass
 
     def __init__(self, filename=None, data=None):
         """
@@ -234,36 +125,16 @@ class BytesOrFile(object):
            - `filename`: A full path to a file
            - `data`: base64 encoded bytes
         """
-        self._filename = None
-        self._bytes = None
-        if filename is not None and data is not None:
-            raise TypeError("filename or data kwarg must be specified, not both")
-        elif filename is not None:
-            if not os.path.isfile(filename):
-                raise exceptions.PyKubeError("'{}' file does not exist".format(filename))
-            self._filename = filename
-        elif data is not None:
-            self._bytes = base64.b64decode(data)
-        else:
-            raise TypeError("filename or data kwarg must be specified")
+        raise NotImplementedError
 
     def bytes(self):
         """
         Returns the provided data as bytes.
         """
-        if self._filename:
-            with open(self._filename, "rb") as f:
-                return f.read()
-        else:
-            return self._bytes
+        pass
 
     def filename(self):
         """
         Returns the provided data as a file location.
         """
-        if self._filename:
-            return self._filename
-        else:
-            with tempfile.NamedTemporaryFile(delete=False) as f:
-                f.write(self._bytes)
-            return f.name
+        pass

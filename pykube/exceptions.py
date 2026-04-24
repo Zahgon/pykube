@@ -19,8 +19,7 @@ class PyKubeError(KubernetesError):
 
 class HTTPError(PyKubeError):
     def __init__(self, code, message):
-        super(HTTPError, self).__init__(message)
-        self.code = code
+        raise NotImplementedError
 
 
 class ObjectDoesNotExist(PyKubeError):
